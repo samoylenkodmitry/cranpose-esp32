@@ -11,7 +11,9 @@ shows below the screen.
 
 ## Parts
 
-- `firmware/`: the Rust app. It depends on Cranpose by git and runs through
+- `firmware/`: the Rust app. It depends on Cranpose by git, without the
+  1.3 MB embedded font: it draws text in an 18 KB Latin subset of Noto Sans
+  (`firmware/assets`, SIL Open Font License). It runs through
   [`cranpose-platform-esp-idf`](https://github.com/samoylenkodmitry/Cranpose/tree/main/crates/cranpose-platform/esp-idf),
   which draws each picture on the CPU and sends the changed rows to an ESP-IDF
   LCD panel. On the emulator that panel is QEMU's virtual RGB panel.
@@ -30,8 +32,8 @@ shows below the screen.
 ## Limits
 
 The emulator follows the chip's instructions, not its timing. Booting takes
-several seconds and the demo draws about one frame a second; neither number
-says anything about a board. The page needs a browser with WebAssembly threads:
+several seconds and the demo draws about 13 frames a second in desktop Chrome;
+neither number says anything about a board. The page needs a browser with WebAssembly threads:
 current Chrome, Edge and Firefox on a desktop.
 
 ## Build

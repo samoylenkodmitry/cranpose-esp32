@@ -4,7 +4,7 @@ const status = document.getElementById('status');
 const log = document.getElementById('log');
 
 const started = performance.now();
-let frames = 0;
+let frameRate = null;
 let image = null;
 
 function seconds() {
@@ -36,11 +36,16 @@ function showFrame(pixels, width, height, bpp) {
     }
   }
   context.putImageData(image, 0, 0);
-  frames += 1;
-  status.textContent = `${frames} frames from the emulated chip, ${seconds()} s since the page loaded`;
+  status.textContent = frameRate === null
+    ? `First frame ${seconds()} s after the page loaded`
+    : `The app draws ${frameRate} frames a second on the emulated chip (${seconds()} s since the page loaded)`;
 }
 
 function print(line) {
+  const stats = /(\d+) frames in ([\d.]+) s/.exec(line);
+  if (stats) {
+    frameRate = (Number(stats[1]) / Number(stats[2])).toFixed(1);
+  }
   log.textContent += line + '\n';
   log.scrollTop = log.scrollHeight;
 }
