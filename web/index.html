@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cranpose on an emulated ESP32-S3</title>
+<meta name="description" content="A Cranpose app's ESP32-S3 firmware running on Espressif's QEMU compiled to WebAssembly, in the browser.">
+<script src="coi-serviceworker.js"></script>
+<style>
+  :root { --bg: #f6f7f9; --fg: #1d2129; --muted: #5d6573; --panel: #ffffff; --line: #d9dde4; --accent: #2f6fde; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #111318; --fg: #e6e8ec; --muted: #9aa1ad; --panel: #1a1d24; --line: #2c313b; --accent: #7aa7ff; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.55 system-ui, -apple-system, Segoe UI, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 28px 16px 48px; }
+  h1 { font-size: 24px; line-height: 1.25; margin: 0 0 8px; }
+  h2 { font-size: 17px; margin: 28px 0 8px; }
+  p, li { color: var(--muted); }
+  p { margin: 0 0 12px; }
+  a { color: var(--accent); }
+  .screen { background: #000; border-radius: 12px; padding: 12px; margin: 16px 0 8px; }
+  canvas { display: block; width: 100%; max-width: 640px; height: auto; aspect-ratio: 4 / 3; margin: 0 auto; image-rendering: pixelated; }
+  #status { font-variant-numeric: tabular-nums; margin: 0 0 12px; color: var(--fg); }
+  pre { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; height: 240px; overflow: auto; font-size: 12px; white-space: pre-wrap; margin: 0; }
+  ul { padding-left: 20px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Cranpose on an emulated ESP32-S3</h1>
+  <p>This page runs the firmware of a <a href="https://github.com/samoylenkodmitry/Cranpose">Cranpose</a> app on an ESP32-S3 that your browser emulates. The ROM, ESP-IDF's bootloader and the app run as they would on a board: Cranpose composes, lays out and draws every frame on the emulated Xtensa LX7, and the frames reach the canvas below through the emulator's virtual RGB panel.</p>
+  <div class="screen"><canvas id="screen" width="320" height="240"></canvas></div>
+  <div id="status">Loading the emulator…</div>
+  <pre id="log" aria-label="Serial output of the emulated chip"></pre>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>The emulator is <a href="https://github.com/espressif/qemu">Espressif's QEMU</a> with its ESP32-S3 board, moved onto <a href="https://github.com/ktock/qemu-wasm">qemu-wasm</a>, which compiles hot guest code to WebAssembly while it runs. The changes are in <a href="https://github.com/samoylenkodmitry/cranpose-esp32-qemu">cranpose-esp32-qemu</a>.</li>
+    <li>The firmware is a Rust app on <a href="https://github.com/samoylenkodmitry/Cranpose/tree/main/crates/cranpose-platform/esp-idf">cranpose-platform-esp-idf</a>: it draws each picture on the CPU and sends the changed rows to an ESP-IDF LCD panel. Its source is in <a href="https://github.com/samoylenkodmitry/cranpose-esp32">cranpose-esp32</a>.</li>
+    <li>The emulator follows the chip's instructions, not its timing: frame times here say nothing about a real board, and booting takes several seconds.</li>
+  </ul>
+</main>
+<script type="module" src="main.js"></script>
+</body>
+</html>

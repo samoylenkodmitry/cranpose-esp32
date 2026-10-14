@@ -1,0 +1,64 @@
+name: Build
+
+# Builds the site: the firmware and its boot images, the browser emulator from
+# its release, and the page.
+on:
+  workflow_call:
+
+env:
+  QEMU_RELEASE: v0.1.0
+  ESPFLASH_RELEASE: v4.6.0
+
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Install the Xtensa Rust toolchain and ldproxy
+        uses: esp-rs/xtensa-toolchain@ec6d36527049a7f4fb2cb0c1a644668c1bb8a2a4 # v1.7.0
+        with:
+          buildtargets: esp32s3
+          version: 1.98.1.0
+          name: esp-1.98.1
+          ldproxy: true
+          override: false
+
+      - name: Install espflash
+        run: |
+          curl -fsSL -o espflash.zip \
+            "https://github.com/esp-rs/espflash/releases/download/$ESPFLASH_RELEASE/espflash-x86_64-unknown-linux-gnu.zip"
+          mkdir -p "$HOME/.local/bin"
+          unzip -q espflash.zip -d "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ~/.espressif
+            firmware/target
+          key: esp32s3-${{ hashFiles('firmware/Cargo.lock', 'firmware/sdkconfig.defaults', 'firmware/rust-toolchain.toml') }}
+          restore-keys: esp32s3-
+
+      - name: Build the firmware
+        working-directory: firmware
+        run: cargo build --release --locked
+
+      - name: Write the boot images
+        run: python3 scripts/images.py firmware dist
+
+      - name: Take the browser emulator from its release
+        run: |
+          base="https://github.com/samoylenkodmitry/cranpose-esp32-qemu/releases/download/$QEMU_RELEASE"
+          curl -fsSLO "$base/qemu-esp32s3-wasm.zip"
+          curl -fsSLO "$base/qemu-esp32s3-wasm.zip.sha256"
+          sha256sum -c qemu-esp32s3-wasm.zip.sha256
+          unzip -q qemu-esp32s3-wasm.zip -d dist
+
+      - name: Add the page
+        run: cp web/* dist/
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
+        with:
+          path: dist
