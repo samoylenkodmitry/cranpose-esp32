@@ -24,16 +24,20 @@ to WebAssembly.
 
    | Board | Build | Flash and show the log |
    | --- | --- | --- |
-   | Hosyond ES3C35P (ESP32-S3) | `ESP_IDF_SDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.es3c35p" cargo build --release --features es3c35p` | `espflash flash --monitor --partition-table partitions.csv target/xtensa-esp32s3-espidf/release/cranpose-esp32-demo` |
-   | LCDWiki E32R35T, the 3.5-inch ESP32-32E (ESP32) | `MCU=esp32 cargo build --release --target xtensa-esp32-espidf --features e32r35t` | `espflash flash --monitor --partition-table partitions_4mb.csv target/xtensa-esp32-espidf/release/cranpose-esp32-demo` |
+   | Hosyond ES3C35P (ESP32-S3) | `ESP_IDF_SDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.es3c35p" cargo build --release --features es3c35p` | `espflash flash --monitor --flash-mode dio --flash-freq 80mhz --bootloader target/xtensa-esp32s3-espidf/release/bootloader.bin --partition-table partitions.csv target/xtensa-esp32s3-espidf/release/cranpose-esp32-demo` |
+   | LCDWiki E32R35T, the 3.5-inch ESP32-32E (ESP32) | `ESP_IDF_SDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.e32r35t" MCU=esp32 cargo build --release --target xtensa-esp32-espidf --features e32r35t` | `espflash flash --monitor --flash-mode dio --flash-freq 80mhz --bootloader target/xtensa-esp32-espidf/release/bootloader.bin --partition-table partitions_4mb.csv target/xtensa-esp32-espidf/release/cranpose-esp32-demo` |
    | QEMU's virtual panel (ESP32-S3) | `cargo build --release` | see [The emulator page](#the-emulator-page) |
 
+   Flash the bootloader that the build made: it turns the flash's quad
+   mode on, which espflash's own bootloader does not. The image header stays
+   DIO, as ESP-IDF writes it for a QIO app.
 4. Write the UI in [`firmware/src/main.rs`](firmware/src/main.rs). It is a
    Cranpose composition like on any other platform: the same composables,
    modifiers, state and animations.
 
 The log prints the frame times every 5 seconds:
-`298 frames in 5.0 s: update 8.2 ms, draw and send 2.0 ms` on the ES3C35P.
+`301 frames in 5.0 s: update 0.94 ms, draw and send 0.51 ms` on the ES3C35P,
+`300 frames in 5.0 s: update 3.42 ms, draw and send 1.09 ms` on the E32R35T.
 
 ## Boards
 
@@ -69,24 +73,37 @@ such as the ST7789, ST7796, ILI9341 or ST77922, needs no change outside
 4. Set the touch panel: `Xpt2046Touch` with a calibration, or
    `St77922Touch`, with an `Orientation` if the glass is mounted turned.
 5. Set `strip_rows`: a strip takes 10 bytes of internal memory a pixel.
-6. Set the chip's flash size and PSRAM in an sdkconfig file, as
-   `sdkconfig.es3c35p` does.
+6. Add an sdkconfig file for the board, as `sdkconfig.es3c35p` and
+   `sdkconfig.e32r35t` do: its flash size, QIO mode if its flash module has
+   the four data lines wired (most do), and on an ESP32-S3 with octal PSRAM
+   the code run from PSRAM.
 
 ## Settings files
 
 - `firmware/sdkconfig.defaults`: the ESP-IDF settings of every chip. The UI
-  runs on the main task, whose stack holds composition and layout.
+  runs on the main task, whose stack holds composition and layout, and the
+  bootloader starts the app without checking its whole image first, which
+  takes half a second on these boards.
 - `firmware/sdkconfig.defaults.esp32s3` and `.esp32`: ESP-IDF adds the one of
   the chip it builds for. The S3 file expects 8 MB of octal PSRAM (N8R8,
-  N16R8); a module with quad PSRAM needs `CONFIG_SPIRAM_MODE_QUAD=y`. The
-  classic file sets one core, which saves the second core's 20 KB of tasks,
-  and 4 MB of flash.
-- `firmware/sdkconfig.es3c35p`: the ES3C35P's USB console and 16 MB of flash.
+  N16R8; a module with quad PSRAM needs `CONFIG_SPIRAM_MODE_QUAD=y`) and sets
+  the largest caches. The classic file sets one core, which saves the second
+  core's 20 KB of tasks.
+- `firmware/sdkconfig.es3c35p` and `sdkconfig.e32r35t`: each board's console,
+  flash size and flash in QIO mode at 80 MHz, and on the ES3C35P the code run
+  from its octal PSRAM. A frame waits for its code mostly: these settings cut
+  the frame from 10.2 to 2.7 ms on the ES3C35P and from 20.4 to 6.4 ms on the
+  E32R35T.
 - `firmware/partitions.csv` and `partitions_4mb.csv`: the flash layouts for 8
   and 4 MB of flash.
 - `firmware/Cargo.toml`: the release profile (`opt-level = 2`, fat LTO, one
   codegen unit) runs a frame in about a quarter fewer instructions than
   `opt-level = "s"`.
+
+Cranpose itself links the framework code a frame runs most into IRAM, where
+the CPU fetches it without the cache: 128 KB on the ESP32-S3 and 64 KB on the
+classic ESP32, for a frame of 1.4 and 4.5 ms. `CONFIG_CRANPOSE_HOT_CODE_IN_IRAM=n`
+in an sdkconfig file turns it off for an app that needs the memory more.
 
 ## The emulator page
 

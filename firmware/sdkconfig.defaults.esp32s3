@@ -10,3 +10,9 @@ CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y
 
 # A memory test of the whole PSRAM at every boot delays the first frame.
 CONFIG_SPIRAM_MEMTEST=n
+
+# The largest caches: a frame runs through more code than the default 16 KB
+# instruction cache holds.
+CONFIG_ESP32S3_INSTRUCTION_CACHE_32KB=y
+CONFIG_ESP32S3_DATA_CACHE_64KB=y
+CONFIG_ESP32S3_DATA_CACHE_LINE_64B=y
