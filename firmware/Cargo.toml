@@ -20,10 +20,10 @@ es3c35p = []
 e32r35t = []
 
 [dependencies]
-cranpose = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "a0f54515417f8aff508e213c392f54f97d2cdeb8", default-features = false, features = ["framebuffer"] }
-cranpose-animation = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "a0f54515417f8aff508e213c392f54f97d2cdeb8" }
-cranpose-core = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "a0f54515417f8aff508e213c392f54f97d2cdeb8" }
-cranpose-platform-esp-idf = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "a0f54515417f8aff508e213c392f54f97d2cdeb8" }
+cranpose = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "b13efb04f062537d76190c5c55ff1d5cc9d9d3be", default-features = false, features = ["framebuffer"] }
+cranpose-animation = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "b13efb04f062537d76190c5c55ff1d5cc9d9d3be" }
+cranpose-core = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "b13efb04f062537d76190c5c55ff1d5cc9d9d3be" }
+cranpose-platform-esp-idf = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "b13efb04f062537d76190c5c55ff1d5cc9d9d3be" }
 esp-idf-svc = "0.53"
 log = "0.4"
 

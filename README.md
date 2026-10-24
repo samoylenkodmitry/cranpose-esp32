@@ -36,11 +36,13 @@ to WebAssembly.
    modifiers, state and animations. An animation that only changes how
    something is drawn reads its value in a draw modifier, as the bar does in
    `draw_behind`: its frames then draw again without composing or laying out
-   the screen.
+   the screen. A number that changes every frame, as a clock or a sensor
+   reading does, draws the same way with `DrawScope::draw_text_from`: on the
+   ES3C35P such a frame takes 2.7 ms drawn, 5.8 ms composed in a `Text`.
 
 The log prints the frame times every 5 seconds:
-`300 frames in 5.0 s: update 0.29 ms, draw and send 0.42 ms` on the ES3C35P,
-`299 frames in 5.0 s: update 0.95 ms, draw and send 0.87 ms` on the E32R35T.
+`300 frames in 5.0 s: update 0.24 ms, draw and send 0.30 ms` on the ES3C35P,
+`300 frames in 5.0 s: update 0.95 ms, draw and send 0.70 ms` on the E32R35T.
 
 ## Boards
 
@@ -103,8 +105,8 @@ such as the ST7789, ST7796, ILI9341 or ST77922, needs no change outside
   `opt-level = "s"`.
 
 Cranpose itself links the framework code a frame runs most into IRAM, where
-the CPU fetches it without the cache: 128 KB on the ESP32-S3 and 64 KB on the
-classic ESP32, for a frame of this app of 0.71 and 1.82 ms. `CONFIG_CRANPOSE_HOT_CODE_IN_IRAM=n`
+the CPU fetches it without the cache: 125 KB on the ESP32-S3 and 64 KB on the
+classic ESP32, for a frame of this app of 0.54 and 1.65 ms. `CONFIG_CRANPOSE_HOT_CODE_IN_IRAM=n`
 in an sdkconfig file turns it off for an app that needs the memory more.
 
 ### Another Cranpose revision
