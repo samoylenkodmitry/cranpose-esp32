@@ -33,11 +33,14 @@ to WebAssembly.
    DIO, as ESP-IDF writes it for a QIO app.
 4. Write the UI in [`firmware/src/main.rs`](firmware/src/main.rs). It is a
    Cranpose composition like on any other platform: the same composables,
-   modifiers, state and animations.
+   modifiers, state and animations. An animation that only changes how
+   something is drawn reads its value in a draw modifier, as the bar does in
+   `draw_behind`: its frames then draw again without composing or laying out
+   the screen.
 
 The log prints the frame times every 5 seconds:
-`301 frames in 5.0 s: update 0.94 ms, draw and send 0.51 ms` on the ES3C35P,
-`300 frames in 5.0 s: update 3.42 ms, draw and send 1.09 ms` on the E32R35T.
+`300 frames in 5.0 s: update 0.29 ms, draw and send 0.42 ms` on the ES3C35P,
+`299 frames in 5.0 s: update 0.95 ms, draw and send 0.87 ms` on the E32R35T.
 
 ## Boards
 
@@ -75,8 +78,7 @@ such as the ST7789, ST7796, ILI9341 or ST77922, needs no change outside
 5. Set `strip_rows`: a strip takes 10 bytes of internal memory a pixel.
 6. Add an sdkconfig file for the board, as `sdkconfig.es3c35p` and
    `sdkconfig.e32r35t` do: its flash size, QIO mode if its flash module has
-   the four data lines wired (most do), and on an ESP32-S3 with octal PSRAM
-   the code run from PSRAM.
+   the four data lines wired (most do).
 
 ## Settings files
 
@@ -90,10 +92,10 @@ such as the ST7789, ST7796, ILI9341 or ST77922, needs no change outside
   the largest caches. The classic file sets one core, which saves the second
   core's 20 KB of tasks.
 - `firmware/sdkconfig.es3c35p` and `sdkconfig.e32r35t`: each board's console,
-  flash size and flash in QIO mode at 80 MHz, and on the ES3C35P the code run
-  from its octal PSRAM. A frame waits for its code mostly: these settings cut
-  the frame from 10.2 to 2.7 ms on the ES3C35P and from 20.4 to 6.4 ms on the
-  E32R35T.
+  flash size and flash in QIO mode at 80 MHz. A frame waits for its code
+  mostly: QIO mode and the S3's larger caches cut the frame of an earlier
+  version of this app, which composed and laid out its bar every frame, from
+  10.2 to 5.7 ms on the ES3C35P and from 20.4 to 6.4 ms on the E32R35T.
 - `firmware/partitions.csv` and `partitions_4mb.csv`: the flash layouts for 8
   and 4 MB of flash.
 - `firmware/Cargo.toml`: the release profile (`opt-level = 2`, fat LTO, one
@@ -102,8 +104,16 @@ such as the ST7789, ST7796, ILI9341 or ST77922, needs no change outside
 
 Cranpose itself links the framework code a frame runs most into IRAM, where
 the CPU fetches it without the cache: 128 KB on the ESP32-S3 and 64 KB on the
-classic ESP32, for a frame of 1.4 and 4.5 ms. `CONFIG_CRANPOSE_HOT_CODE_IN_IRAM=n`
+classic ESP32, for a frame of this app of 0.71 and 1.82 ms. `CONFIG_CRANPOSE_HOT_CODE_IN_IRAM=n`
 in an sdkconfig file turns it off for an app that needs the memory more.
+
+### Another Cranpose revision
+
+Change the `rev` of the four Cranpose dependencies in `firmware/Cargo.toml`.
+ESP-IDF keeps the components it built first, Cranpose's IRAM function list
+and C code among them: the build stops when it finds them and names the
+command that builds them again, `cargo clean -p esp-idf-sys --release
+--target <the board's target>`.
 
 ## The emulator page
 
