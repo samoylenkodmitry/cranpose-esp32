@@ -27,7 +27,7 @@ jobs:
           - board: e32r35t
             mcu: esp32
             target: xtensa-esp32-espidf
-            sdkconfig: sdkconfig.defaults
+            sdkconfig: sdkconfig.defaults;sdkconfig.e32r35t
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
