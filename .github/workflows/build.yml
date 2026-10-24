@@ -18,6 +18,10 @@ jobs:
 
       - name: Install the Xtensa Rust toolchain and ldproxy
         uses: esp-rs/xtensa-toolchain@ec6d36527049a7f4fb2cb0c1a644668c1bb8a2a4 # v1.7.0
+        # espup reads the toolchain release from the GitHub API, which answers
+        # 403 to unauthenticated calls once jobs share a rate limit.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         with:
           buildtargets: esp32s3
           version: 1.98.1.0
@@ -38,7 +42,7 @@ jobs:
           path: |
             ~/.espressif
             firmware/target
-          key: esp32s3-${{ hashFiles('firmware/Cargo.lock', 'firmware/sdkconfig.defaults', 'firmware/rust-toolchain.toml') }}
+          key: esp32s3-${{ hashFiles('firmware/Cargo.lock', 'firmware/sdkconfig*', 'firmware/rust-toolchain.toml') }}
           restore-keys: esp32s3-
 
       - name: Build the firmware

@@ -11,3 +11,50 @@ permissions:
 jobs:
   build:
     uses: ./.github/workflows/build.yml
+
+  # Builds the firmware of each board the template supports.
+  boards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - board: es3c35p
+            mcu: esp32s3
+            target: xtensa-esp32s3-espidf
+            sdkconfig: sdkconfig.defaults;sdkconfig.es3c35p
+          - board: e32r35t
+            mcu: esp32
+            target: xtensa-esp32-espidf
+            sdkconfig: sdkconfig.defaults
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Install the Xtensa Rust toolchain and ldproxy
+        uses: esp-rs/xtensa-toolchain@ec6d36527049a7f4fb2cb0c1a644668c1bb8a2a4 # v1.7.0
+        # espup reads the toolchain release from the GitHub API, which answers
+        # 403 to unauthenticated calls once jobs share a rate limit.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          buildtargets: ${{ matrix.mcu }}
+          version: 1.98.1.0
+          name: esp-1.98.1
+          ldproxy: true
+          override: false
+
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ~/.espressif
+            firmware/target
+          key: ${{ matrix.board }}-${{ hashFiles('firmware/Cargo.lock', 'firmware/sdkconfig*', 'firmware/rust-toolchain.toml') }}
+          restore-keys: ${{ matrix.board }}-
+
+      - name: Build the firmware
+        working-directory: firmware
+        env:
+          MCU: ${{ matrix.mcu }}
+          ESP_IDF_SDKCONFIG_DEFAULTS: ${{ matrix.sdkconfig }}
+        run: cargo build --release --locked --target ${{ matrix.target }} --features ${{ matrix.board }}
