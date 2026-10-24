@@ -2,7 +2,7 @@
 name = "cranpose-esp32-demo"
 version = "0.1.0"
 edition = "2024"
-description = "A Cranpose screen on an ESP32-S3 through ESP-IDF"
+description = "A Cranpose app on an ESP32 or ESP32-S3 through ESP-IDF"
 license = "Apache-2.0 OR MIT"
 repository = "https://github.com/samoylenkodmitry/cranpose-esp32"
 publish = false
@@ -11,20 +11,37 @@ publish = false
 name = "cranpose-esp32-demo"
 harness = false
 
+[features]
+# Runs on the Hosyond ES3C35P board's display and touch panel.
+es3c35p = []
+# Runs on the 3.5-inch ESP32-32E board's display and touch panel, for the
+# `xtensa-esp32-espidf` target. Without a board feature the app draws on
+# QEMU's virtual panel.
+e32r35t = []
+
 [dependencies]
-cranpose = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "26beb42605d142900fb0e3a54acce53196f62cee", default-features = false, features = ["framebuffer"] }
-cranpose-animation = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "26beb42605d142900fb0e3a54acce53196f62cee" }
-cranpose-core = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "26beb42605d142900fb0e3a54acce53196f62cee" }
-cranpose-platform-esp-idf = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "26beb42605d142900fb0e3a54acce53196f62cee" }
+cranpose = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "fea27a682512af2226ff3d2589eee957d178e172", default-features = false, features = ["framebuffer"] }
+cranpose-animation = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "fea27a682512af2226ff3d2589eee957d178e172" }
+cranpose-core = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "fea27a682512af2226ff3d2589eee957d178e172" }
+cranpose-platform-esp-idf = { git = "https://github.com/samoylenkodmitry/Cranpose", rev = "fea27a682512af2226ff3d2589eee957d178e172" }
 esp-idf-svc = "0.53"
 log = "0.4"
 
 [build-dependencies]
 embuild = "0.33.5"
 
+# Measured on the Cranpose ESP32 demo under QEMU's instruction counter with the
+# S3's 16 KB instruction cache simulated: against "s", opt-level 2 runs a frame
+# in 19% fewer instructions with 11% fewer cache misses, for 290 KB more code.
+# Fat LTO in one codegen unit then inlines the small functions of other
+# crates: 5.5% fewer instructions a frame, 10% fewer instruction cache misses
+# and 160 KB less code.
 [profile.release]
-opt-level = "s"
+opt-level = 2
+lto = "fat"
+codegen-units = 1
 
 [profile.dev]
 debug = true
 opt-level = "z"
+

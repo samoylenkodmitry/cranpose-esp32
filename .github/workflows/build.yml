@@ -38,7 +38,7 @@ jobs:
           path: |
             ~/.espressif
             firmware/target
-          key: esp32s3-${{ hashFiles('firmware/Cargo.lock', 'firmware/sdkconfig.defaults', 'firmware/rust-toolchain.toml') }}
+          key: esp32s3-${{ hashFiles('firmware/Cargo.lock', 'firmware/sdkconfig*', 'firmware/rust-toolchain.toml') }}
           restore-keys: esp32s3-
 
       - name: Build the firmware

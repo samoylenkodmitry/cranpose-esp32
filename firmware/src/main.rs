@@ -1,12 +1,14 @@
 #![deny(unsafe_code)]
 
+mod board;
+
 use std::time::Duration;
 
 use cranpose::{prelude::*, text::TextUnit};
 use cranpose_animation::{
     AnimationSpec, RepeatMode, StartOffset, infiniteRepeatable, rememberInfiniteTransition,
 };
-use cranpose_platform_esp_idf::{Qemu, run_board};
+use cranpose_platform_esp_idf::{DisplayConfig, RunError, run};
 
 static FONTS: &[&[u8]] = &[include_bytes!("../assets/NotoSans-Latin.ttf")];
 
@@ -72,6 +74,27 @@ fn Seconds() {
 }
 
 #[composable]
+fn Taps() {
+    let taps = cranpose_core::rememberMutableStateOf(|| 0u32);
+    Box(
+        Modifier::empty()
+            .fill_max_width()
+            .background(Color::from_rgb_u8(98, 160, 255))
+            .rounded_corners(12.0)
+            .clickable(move |_| taps.set(taps.get() + 1))
+            .padding(20.0),
+        BoxSpec::default(),
+        move || {
+            Text(
+                format!("Taps: {}", taps.get()),
+                Modifier::empty(),
+                text_style(Color::from_rgb_u8(18, 20, 30), 18.0),
+            );
+        },
+    );
+}
+
+#[composable]
 fn Screen() {
     Column(
         Modifier::empty()
@@ -81,7 +104,7 @@ fn Screen() {
         ColumnSpec::default().vertical_arrangement(LinearArrangement::spaced_by(14.0)),
         || {
             Text(
-                "Cranpose on ESP32-S3",
+                board::TITLE,
                 Modifier::empty(),
                 text_style(Color::WHITE, 22.0),
             );
@@ -92,6 +115,7 @@ fn Screen() {
             );
             Pulse();
             Seconds();
+            Taps();
         },
     );
 }
@@ -99,6 +123,12 @@ fn Screen() {
 fn main() {
     esp_idf_svc::sys::link_patches();
     esp_idf_svc::log::EspLogger::initialize_default();
-    let Err(error) = run_board::<Qemu>(FONTS, Screen);
-    log::error!("esp32-demo stopped: {error}");
+    let config = DisplayConfig {
+        fonts: FONTS,
+        ..board::config()
+    };
+    let Err(error) = board::open()
+        .map_err(RunError::from)
+        .and_then(|(panel, touch)| run(panel, touch, config, Screen));
+    log::error!("stopped: {error}");
 }
