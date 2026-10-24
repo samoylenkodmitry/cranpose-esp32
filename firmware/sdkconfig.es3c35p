@@ -11,6 +11,6 @@ CONFIG_ESPTOOLPY_FLASHMODE_QIO=y
 # The code runs from flash. CONFIG_SPIRAM_XIP_FROM_PSRAM=y would copy the
 # app's code and read-only data to the module's octal PSRAM at start, where a
 # cache miss fills from a bus twice as wide as quad flash: it takes the
-# app's frame from 0.71 to 0.50 ms, as the framework's per-frame code is in
+# app's frame from 0.54 to 0.43 ms, as the framework's per-frame code is in
 # IRAM either way, for 180 ms more before the first frame and 2.6 MB of the
 # PSRAM.
