@@ -6,10 +6,8 @@ use cranpose::{prelude::*, text::TextUnit};
 use cranpose_animation::{
     AnimationSpec, RepeatMode, StartOffset, infiniteRepeatable, rememberInfiniteTransition,
 };
-use cranpose_platform_esp_idf::{DisplayConfig, Panel, RunError, run};
+use cranpose_platform_esp_idf::{Qemu, run_board};
 
-const WIDTH: u32 = 320;
-const HEIGHT: u32 = 240;
 static FONTS: &[&[u8]] = &[include_bytes!("../assets/NotoSans-Latin.ttf")];
 
 fn text_style(color: Color, size: f32) -> TextStyle {
@@ -101,14 +99,6 @@ fn Screen() {
 fn main() {
     esp_idf_svc::sys::link_patches();
     esp_idf_svc::log::EspLogger::initialize_default();
-    let Err(error) = Panel::qemu(WIDTH, HEIGHT)
-        .map_err(RunError::from)
-        .and_then(|panel| {
-            let config = DisplayConfig {
-                fonts: FONTS,
-                ..DisplayConfig::default()
-            };
-            run(panel, config, Screen)
-        });
+    let Err(error) = run_board::<Qemu>(FONTS, Screen);
     log::error!("esp32-demo stopped: {error}");
 }
