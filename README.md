@@ -38,11 +38,18 @@ to WebAssembly.
    `draw_behind`: its frames then draw again without composing or laying out
    the screen. A number that changes every frame, as a clock or a sensor
    reading does, draws the same way with `DrawScope::draw_text_from`: on the
-   ES3C35P such a frame takes 2.7 ms drawn, 5.8 ms composed in a `Text`.
+   ES3C35P such a frame takes 2.2 ms drawn, 4.7 ms composed in a `Text`.
 
-The log prints the frame times every 5 seconds:
-`300 frames in 5.0 s: update 0.24 ms, draw and send 0.30 ms` on the ES3C35P,
-`300 frames in 5.0 s: update 0.95 ms, draw and send 0.70 ms` on the E32R35T.
+The log prints the frame times, the internal RAM the heap has left and the
+main task's stack every 5 seconds: `300 frames in 5.0 s: update 0.18 ms, draw
+and send 0.26 ms, slowest 5.7 ms; heap 103 KB free, 52 KB in one block, 71 KB
+at least; stack 10760 bytes never used` on the ES3C35P, `300 frames in 5.0 s:
+update 0.82 ms, draw and send 0.50 ms, slowest 7.8 ms; heap 144 KB free, 116
+KB in one block, 143 KB at least; stack 11072 bytes never used` on the
+E32R35T. One block is the longest allocation that can succeed; at least is
+the least that was free since startup. The stack the app never used is what
+`CONFIG_ESP_MAIN_TASK_STACK_SIZE` could give back to the heap; keep a few KB
+of it for screens the run did not show.
 
 ## Boards
 
@@ -85,8 +92,8 @@ such as the ST7789, ST7796, ILI9341 or ST77922, needs no change outside
 ## Settings files
 
 - `firmware/sdkconfig.defaults`: the ESP-IDF settings of every chip. The UI
-  runs on the main task, whose stack holds composition and layout, and the
-  bootloader starts the app without checking its whole image first, which
+  runs on the main task, whose 28 KB stack holds composition and layout, and
+  the bootloader starts the app without checking its whole image first, which
   takes half a second on these boards.
 - `firmware/sdkconfig.defaults.esp32s3` and `.esp32`: ESP-IDF adds the one of
   the chip it builds for. The S3 file expects 8 MB of octal PSRAM (N8R8,
@@ -106,7 +113,7 @@ such as the ST7789, ST7796, ILI9341 or ST77922, needs no change outside
 
 Cranpose itself links the framework code a frame runs most into IRAM, where
 the CPU fetches it without the cache: 125 KB on the ESP32-S3 and 64 KB on the
-classic ESP32, for a frame of this app of 0.54 and 1.65 ms. `CONFIG_CRANPOSE_HOT_CODE_IN_IRAM=n`
+classic ESP32, for a frame of this app of 0.44 and 1.32 ms. `CONFIG_CRANPOSE_HOT_CODE_IN_IRAM=n`
 in an sdkconfig file turns it off for an app that needs the memory more.
 
 ### Another Cranpose revision
