@@ -1,6 +1,8 @@
 # Cranpose on ESP32
 
-**[Open the live page](https://samoylenkodmitry.github.io/cranpose-esp32/)**
+**[Run the integration demo](https://samoylenkodmitry.github.io/cranpose-esp32/)** · **[Explore the benchmark layouts](https://samoylenkodmitry.github.io/cranpose-esp32/benchmarks/)**
+
+The benchmark page shows the animated bar and the dashboard used by the nightly. It builds both screens from the Cranpose benchmark checkout. Each screenshot comes from that firmware running on QEMU’s 320 by 480 panel. Each screen can also run live in the browser.
 
 This repository is the template from which to start a
 [Cranpose](https://github.com/samoylenkodmitry/Cranpose) app for an ESP32 or

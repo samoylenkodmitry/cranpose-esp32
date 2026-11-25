@@ -36,6 +36,7 @@ function showFrame(pixels, width, height, bpp) {
     }
   }
   context.putImageData(image, 0, 0);
+  if (canvas.hidden) canvas.hidden = false;
   status.textContent = frameRate === null
     ? `First frame ${seconds()} s after the page loaded`
     : `The app draws ${frameRate} frames a second on the emulated chip (${seconds()} s since the page loaded)`;
@@ -51,7 +52,7 @@ function print(line) {
 }
 
 async function bytes(path) {
-  const response = await fetch(path);
+  const response = await fetch(new URL(path, import.meta.url));
   if (!response.ok) {
     throw new Error(`${path}: HTTP ${response.status}`);
   }
@@ -68,7 +69,7 @@ async function start() {
   }
   const [{ default: createQemu }, flash, efuse, rom] = await Promise.all([
     import('./qemu-system-xtensa.js'),
-    bytes('flash.bin.gz'),
+    bytes(canvas.dataset.firmware ?? 'flash.bin.gz'),
     bytes('efuse.bin'),
     bytes('esp32s3_rev0_rom.bin'),
   ]);
