@@ -36,7 +36,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libsdl2-2.0-0 libslirp0
           bash cranpose/scripts/esp32/setup.sh
+          "$HOME/.local/esp-qemu/qemu/bin/qemu-system-xtensa" --version
           . "$HOME/export-esp-1.100.0.sh"
           python3 scripts/benchmark_layouts.py cranpose layouts
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
