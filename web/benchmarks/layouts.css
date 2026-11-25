@@ -1,0 +1,43 @@
+:root {
+  color-scheme: light dark;
+  --paper: #f5f7fb;
+  --ink: #162136;
+  --muted: #475970;
+  --rule: #c4ceda;
+  --well: #e1e8f1;
+  --link: #174d9f;
+  font: 100%/1.5 system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --paper: #111925; --ink: #edf2fa; --muted: #b4c2d5; --rule: #405066; --well: #1e293a; --link: #a0c7ff; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--ink); background: var(--paper); }
+main { max-width: 66rem; margin: auto; padding: 1.5rem clamp(1rem, 4vw, 3.5rem) 3rem; }
+a { color: var(--link); text-underline-offset: .2em; }
+a:focus-visible, summary:focus-visible { outline: 3px solid var(--link); outline-offset: 4px; }
+nav, footer { padding-block: 1rem; }
+nav { border-bottom: 1px solid var(--rule); }
+header { margin: 2.5rem 0 2rem; }
+h1, h2, p, figure, dl, dd { margin: 0; }
+h1 { font-size: clamp(2rem, 5vw, 3.4rem); letter-spacing: -.045em; line-height: 1.05; }
+header p { margin-top: 1rem; max-width: 72ch; }
+p { color: var(--muted); }
+.layouts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem; }
+section { border-top: 2px solid var(--ink); padding-top: 1rem; }
+h2 { font-size: 1.5rem; letter-spacing: -.025em; }
+section > p { min-height: 4.5em; margin: .4rem 0 1rem; }
+figure { padding: 1rem; background: var(--well); }
+figure img, canvas { display: block; margin: auto; width: min(100%, 320px); height: auto; aspect-ratio: 2 / 3; image-rendering: pixelated; }
+canvas[hidden], figure:has(canvas:not([hidden])) img { display: none; }
+.run { display: inline-block; margin-top: 1rem; padding: .55rem 1rem; border-radius: .4rem; background: var(--ink); color: var(--paper); font-weight: 600; text-decoration: none; }
+.run:hover { text-decoration: underline; }
+dl { margin-top: 1rem; font-size: .95rem; }
+dt { margin-top: .5rem; font-weight: 600; }
+dd, details { color: var(--muted); }
+.diagnostics { margin-top: .8rem; overflow-wrap: anywhere; }
+pre { max-height: 12rem; overflow: auto; white-space: pre-wrap; }
+aside { margin-top: 2rem; border-top: 1px solid var(--rule); padding-top: 1rem; }
+aside p { margin-top: .5rem; }
+footer { display: flex; flex-wrap: wrap; gap: .75rem 2rem; margin-top: 2rem; border-top: 1px solid var(--rule); }
+@media (max-width: 42rem) { .layouts { grid-template-columns: 1fr; } section > p { min-height: 0; } }

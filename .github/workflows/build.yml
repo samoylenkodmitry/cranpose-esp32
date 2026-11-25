@@ -10,6 +10,45 @@ env:
   ESPFLASH_RELEASE: v4.6.0
 
 jobs:
+  benchmark-layouts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      BENCHMARK_REVISION: 0a368a66aa2ebc06e4273ab76f7a96e752b12736
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Restore firmware and captures for this source revision
+        id: previews
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: layouts
+          key: benchmark-layouts-${{ env.BENCHMARK_REVISION }}-${{ hashFiles('scripts/benchmark_layouts.py', '.github/workflows/build.yml') }}
+      - name: Check out the layouts used by the nightly
+        if: steps.previews.outputs.cache-hit != 'true'
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: samoylenkodmitry/Cranpose
+          ref: ${{ env.BENCHMARK_REVISION }}
+          path: cranpose
+          persist-credentials: false
+      - name: Build and boot each layout on the virtual panel
+        if: steps.previews.outputs.cache-hit != 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libsdl2-2.0-0 libslirp0
+          bash cranpose/scripts/esp32/setup.sh
+          "$HOME/.local/esp-qemu/qemu/bin/qemu-system-xtensa" --version
+          . "$HOME/export-esp-1.100.0.sh"
+          python3 scripts/benchmark_layouts.py cranpose layouts
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: layout-firmware
+          path: layouts/
+          if-no-files-found: error
+          retention-days: 1
+
   site:
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -61,8 +100,27 @@ jobs:
           unzip -q qemu-esp32s3-wasm.zip -d dist
 
       - name: Add the page
-        run: cp web/* dist/
+        run: cp -R web/. dist/
 
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: emulator-site
+          path: dist/
+          if-no-files-found: error
+          retention-days: 1
+
+  package:
+    needs: [site, benchmark-layouts]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: emulator-site
+          path: dist
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: layout-firmware
+          path: dist/benchmarks
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:
           path: dist

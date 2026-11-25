@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ESP32 benchmark layouts · Cranpose</title>
+  <meta name="description" content="See and run the two 320 by 480 layouts from Cranpose's nightly ESP32 framework comparison.">
+  <link rel="stylesheet" href="layouts.css">
+  <script src="../coi-serviceworker.js"></script>
+  <script type="module" src="layouts.js"></script>
+</head>
+<body>
+  <main>
+    <nav aria-label="Project"><a href="../">Cranpose on ESP32</a></nav>
+    <header>
+      <h1>ESP32 benchmark layouts</h1>
+      <p>The nightly compares these screens on two physical boards with 320 × 480 displays. Each preview shows the Cranpose firmware on a virtual ESP32-S3. The published timings come from the boards.</p>
+    </header>
+    <div class="layouts">
+      <section id="demo" aria-labelledby="demo-title">
+        <h2 id="demo-title">Animated bar</h2>
+        <p>The blue bar sweeps across its track. The elapsed-time label changes once a second.</p>
+        <figure><img src="demo.png" width="320" height="480" alt="Firmware screen with a blue progress bar, an elapsed-time label and a tap counter."></figure>
+        <a class="run" href="?run=demo#demo">Run animated bar</a>
+        <dl>
+          <dt>ES3C35P and E32R35T</dt>
+          <dd><a data-source href="https://github.com/samoylenkodmitry/Cranpose/blob/main/apps/esp32-demo/src/demo.rs">Cranpose</a> and
+            <a data-source href="https://github.com/samoylenkodmitry/Cranpose/blob/main/benchmarks/esp32/lvgl-app/main/main.c">LVGL</a></dd>
+        </dl>
+      </section>
+      <section id="dashboard" aria-labelledby="dashboard-title">
+        <h2 id="dashboard-title">Dashboard</h2>
+        <p>The gauge and chart follow a shared clock. The switches change state while the list scrolls.</p>
+        <figure><img src="dashboard.png" width="320" height="480" alt="Firmware dashboard with a ring gauge, level bars, a line chart and a scrolling list."></figure>
+        <a class="run" href="?run=dashboard#dashboard">Run dashboard</a>
+        <dl>
+          <dt>ES3C35P</dt>
+          <dd><a data-source href="https://github.com/samoylenkodmitry/Cranpose/blob/main/crates/cranpose/tests/support/dashboard.rs">Cranpose</a>,
+            <a data-source href="https://github.com/samoylenkodmitry/Cranpose/blob/main/benchmarks/esp32/lvgl-app/main/dashboard.c">LVGL</a> and
+            <a data-source href="https://github.com/samoylenkodmitry/Cranpose/blob/main/benchmarks/esp32/slint-app/ui/dashboard.slint">Slint</a></dd>
+          <dt>E32R35T</dt><dd>LVGL and Slint</dd>
+        </dl>
+      </section>
+    </div>
+    <aside aria-labelledby="other-layouts">
+      <h2 id="other-layouts">Desktop and Android layouts</h2>
+      <p><a href="https://samoylenkodmitry.github.io/Cranpose/?tab=gauntlet">Gauntlet</a> runs on the Mate 20 X and Mi TV Stick. The desktop comparison also measures
+        <a href="https://samoylenkodmitry.github.io/Cranpose/?tab=still-wall">Still Wall</a> and
+        <a href="https://samoylenkodmitry.github.io/Cranpose/?tab=patchwork">Patchwork</a>.</p>
+    </aside>
+    <footer>
+      <a id="source" data-source href="https://github.com/samoylenkodmitry/Cranpose/tree/main/benchmarks/esp32">Benchmark source</a>
+      <a href="https://samoylenkodmitry.github.io/Cranpose/?tab=performance">Nightly results</a>
+    </footer>
+    <template id="player">
+      <canvas id="screen" width="320" height="480" hidden></canvas>
+      <div class="diagnostics">
+        <p id="status">Loading firmware…</p>
+        <details><summary>Serial output</summary><pre id="log"></pre></details>
+      </div>
+    </template>
+  </main>
+</body>
+</html>
